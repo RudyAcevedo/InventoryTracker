@@ -1,0 +1,41 @@
+<resources>
+    <string name="app_name">Inventory App</string>
+
+    <string name="item_name">Item Name</string>
+
+    <string name="item_price">Item Price</string>
+
+    <string name="item_supplier">Item Supplier</string>
+
+    <string name="item_quantity">Item Quantity</string>
+
+    <string name="action_save">Save</string>
+
+    <string name="action_delete">Delete</string>
+
+    <string name="empty_view_title_text">Looks like you\'re low on product</string>
+
+    <string name="empty_view_subtitle_text">Let\'s add some items</string>
+
+    <string name="category_unknown">Unknown</string>
+
+    <string name="category_beverage">Beverage</string>
+
+    <string name="category_chips">Chips</string>
+
+    <string name="category_candy">Candy</string>
+
+    <string name="editor_insert_item_failed">Error with saving item</string>
+
+    <string name="editor_insert_item_successful">Item saved</string>
+
+    <string name="editor_update_item_failed">Error with updated item</string>
+
+    <string name="editor_update_item_successful">Item updated</string>
+
+    <string name="unsaved_changes_dialog_msg">Discard your changes and quite editing?</string>
+
+    <string name="discard">Discard</string>
+
+    <string name="keep_editing">Keep Editing</string>
+</resources>
