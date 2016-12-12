@@ -92,28 +92,7 @@ public class EditorActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_editor);
 
-        //TODO decide activity_editor can be reused and if code below is usable
 
-//        //Examine the intent that was used to launch this activity, In order to figure out if
-//        //we are creating a new pet or editing an existing one
-//        Intent intent = getIntent();
-//        mCurrentPetUri = intent.getData();
-//
-//        //If the intent DOES NOT contain pet content URI, then we know that we are creating
-//        //a new pet
-//        if (mCurrentPetUri == null){
-//            //This is a new pet, so change the app bar to say " Add a Pet"
-//            setTitle(getString(R.string.editor_activity_title_new_pet));
-//            //Invalidate teh options menu, so the "Delete" menu option can be hidden.
-//            invalidateOptionsMenu();
-//        }else {
-//            //Otherwise this is an existing pet, so change the app bar to say "Edit Pet"
-//            setTitle((R.string.editor_activity_title_edit));
-//
-//            //Initialize loader to read the pet data from the database
-//            //and display the current values in the editor
-//            getLoaderManager().initLoader(EXISTING_PET_LOADER, null, this);
-//        }
 
         // Find all relevant views that we will need to read user input from
         mItemNameEditText = (EditText) findViewById(R.id.edit_item_name);

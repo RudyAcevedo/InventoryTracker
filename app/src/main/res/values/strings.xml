@@ -38,4 +38,6 @@
     <string name="discard">Discard</string>
 
     <string name="keep_editing">Keep Editing</string>
+
+    <string name="supplier_request_subject">New Shipment Request</string>
 </resources>

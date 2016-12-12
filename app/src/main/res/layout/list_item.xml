@@ -82,12 +82,13 @@
         android:weightSum="2">
 
         <Button
-            android:id="@+id/button_shipment"
+            android:id="@+id/button_reorder"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
             android:layout_weight="1"
-            android:text="Shipment" />
+            android:text="Reorder"
+            android:onClick="reorderHandler"/>
 
         <Button
             android:id="@+id/button_sale"
@@ -95,7 +96,8 @@
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
             android:layout_weight="1"
-            android:text="Sale" />
+            android:text="Sale"
+            android:onClick="saleHandler"/>
     </LinearLayout>
 
 

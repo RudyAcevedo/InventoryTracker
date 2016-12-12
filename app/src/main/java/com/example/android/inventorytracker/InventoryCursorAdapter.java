@@ -17,6 +17,8 @@ import com.example.android.inventorytracker.data.InventoryContract.InventoryEntr
 
 public class InventoryCursorAdapter extends CursorAdapter {
 
+
+
     //constructs a new InventoryCursorAdapter
     public InventoryCursorAdapter(Context context, Cursor c){
         super(context, c, 0);
@@ -27,9 +29,16 @@ public class InventoryCursorAdapter extends CursorAdapter {
         return LayoutInflater.from(context).inflate(R.layout.list_item, parent, false);
     }
 
+
+
     //This method binds the inventory data to the given list item layout.
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
+
+
+
+
+
 
         //Find fields to populate in inflated template
         ImageView categoryImageView = (ImageView) view.findViewById(R.id.item_category);
@@ -64,5 +73,9 @@ public class InventoryCursorAdapter extends CursorAdapter {
         priceTextView.setText(itemPrice);
         supplierTextView.setText(itemSupplier);
         quantityTextView.setText(itemQuantity);
+
+
     }
+
+
 }

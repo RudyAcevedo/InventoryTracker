@@ -12,6 +12,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.example.android.inventorytracker.data.InventoryContract;
 import com.example.android.inventorytracker.data.InventoryContract.InventoryEntry;
@@ -19,15 +20,19 @@ import com.example.android.inventorytracker.data.InventoryContract.InventoryEntr
 public class CatalogActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor>{
 
+    int quantity = 0;
 
     private  static final int INVENTORY_LOADER = 0;
 
     InventoryCursorAdapter mCursorAdapter;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_catalog);
+
+
 
         // Setup FAB to open EditorActivity
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -67,10 +72,72 @@ public class CatalogActivity extends AppCompatActivity implements
                 startActivity(intent);
             }
         });
+
+
         //Kick off the loader
         getLoaderManager().initLoader(INVENTORY_LOADER, null, this);
 
     }
+
+    public void reorderHandler(View view){
+
+        sendEmail();
+
+    }
+    protected void sendEmail(){
+        //Get supplier name
+        TextView itemSupplier = (TextView) findViewById(R.id.item_supplier);
+        CharSequence supplierCharSequence = itemSupplier.getText();
+        String supplier = supplierCharSequence.toString();
+
+        //Get item name
+        TextView itemName = (TextView) findViewById(R.id.item_name);
+        CharSequence nameCharSequence = itemName.getText();
+        String item = nameCharSequence.toString();
+
+        //Display the request to the supplier
+        String message = createSupplierRequest(supplier, item);
+
+        //Use intent to launch email app. send the supplier request in the email body
+        Intent intent = new Intent(Intent.ACTION_SENDTO);
+        intent.setData(Uri.parse("mailto:"));
+        intent.putExtra(Intent.EXTRA_SUBJECT,
+                getString(R.string.supplier_request_subject));
+        intent.putExtra(Intent.EXTRA_TEXT, message);
+        startActivity(intent);
+
+    }
+
+    private String createSupplierRequest(String supplier, String item){
+        String emailMessage = "Hello " + supplier + ","
+                + "\n\nIt looks like we are running low on " + item
+                + " and would like to reorder more."
+                + "\nRegards,"
+                +"\nConvenience Store Co.";
+        return emailMessage;
+    }
+
+    public void saleHandler(View view){
+        decrement();
+    }
+
+    public void decrement(){
+        //Get item quantity from textview
+        TextView itemQuantity = (TextView) findViewById(R.id.item_quantity);
+        CharSequence quantitySeq = itemQuantity.getText();
+        int quantity = Integer.parseInt((String) quantitySeq);
+
+
+        quantity = quantity - 1;
+
+        TextView quanitityView = (TextView) findViewById(R.id.item_quantity);
+        quanitityView.setText(String.valueOf(quantity));
+
+        if (quantity < 0){
+            quantity = 0;
+        }
+    }
+
 
 
 
@@ -104,4 +171,8 @@ public class CatalogActivity extends AppCompatActivity implements
         mCursorAdapter.swapCursor(null);
 
     }
+
+
 }
+
+
