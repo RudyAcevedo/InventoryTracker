@@ -117,26 +117,7 @@ public class CatalogActivity extends AppCompatActivity implements
         return emailMessage;
     }
 
-    public void saleHandler(View view){
-        decrement();
-    }
 
-    public void decrement(){
-        //Get item quantity from textview
-        TextView itemQuantity = (TextView) findViewById(R.id.item_quantity);
-        CharSequence quantitySeq = itemQuantity.getText();
-        int quantity = Integer.parseInt((String) quantitySeq);
-
-
-        quantity = quantity - 1;
-
-        TextView quanitityView = (TextView) findViewById(R.id.item_quantity);
-        quanitityView.setText(String.valueOf(quantity));
-
-        if (quantity < 0){
-            quantity = 0;
-        }
-    }
 
 
 

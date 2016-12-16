@@ -40,4 +40,6 @@
     <string name="keep_editing">Keep Editing</string>
 
     <string name="supplier_request_subject">New Shipment Request</string>
+
+    <string name="item_sold">Item successfully sold</string>
 </resources>
