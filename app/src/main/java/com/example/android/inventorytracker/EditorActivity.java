@@ -1,27 +1,37 @@
 package com.example.android.inventorytracker;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.LoaderManager;
 import android.content.ContentValues;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.ParcelFileDescriptor;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Spinner;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.android.inventorytracker.data.InventoryContract.InventoryEntry;
+
+import java.io.FileDescriptor;
+import java.io.IOException;
 
 /**
  * Created by Rudster on 12/1/2016.
@@ -29,6 +39,8 @@ import com.example.android.inventorytracker.data.InventoryContract.InventoryEntr
 
 public class EditorActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor> {
+
+    private static final String LOG_TAG = EditorActivity.class.getSimpleName();
 
     /**
      * Identifier for the item data loader
@@ -59,16 +71,14 @@ public class EditorActivity extends AppCompatActivity implements
      */
     private EditText mItemQuantity;
 
-    /**
-     * EditText field to enter the items category
-     */
-    private Spinner mCategorySpinner;
 
     /**
-     * Category of item The possible values are:
-     * 0 for beverage, 1 for chips, 2 for candy.
+     *
      */
-    private int mCategory = InventoryEntry.CATEGORY_UNKNOWN;
+    private static final int PICK_IMAGE_REQUEST = 0;
+
+    private ImageView mImageView;
+    private TextView mTextView;
 
     /**
      * Boolean flag that keeps track of whether the pet has been edited (true) or not (false)
@@ -92,6 +102,25 @@ public class EditorActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_editor);
 
+        //Examine the intent that was used to launch this activity,
+        //in order to figure out if we"re creating a new item or editing an existing one.
+        Intent intent = getIntent();
+        mCurrentItemUri = intent.getData();
+
+        //If the intent does not contain an item content URI , then we know that we are creating
+        //a new item
+        if (mCurrentItemUri == null) {
+            //This is a new item, so change the app bar to say "Add an Item"
+            setTitle(getString(R.string.editor_activity_title_new_item));
+
+            invalidateOptionsMenu();
+        } else {
+            //Otherwise this is an existing item, so change the app bar to say "Edit an Item"
+            setTitle(getString(R.string.editor_activity_title_edit_item));
+            //Initialize a loader to read the item data from the database
+            //and display the current values in the editor
+            getLoaderManager().initLoader(EXISTING_ITEM_LOADER, null, this);
+        }
 
 
         // Find all relevant views that we will need to read user input from
@@ -99,7 +128,10 @@ public class EditorActivity extends AppCompatActivity implements
         mItemPrice = (EditText) findViewById(R.id.edit_item_price);
         mItemSupplier = (EditText) findViewById(R.id.edit_item_supplier);
         mItemQuantity = (EditText) findViewById(R.id.edit_item_quantity);
-        mCategorySpinner = (Spinner) findViewById(R.id.spinner_item_category);
+
+        mTextView = (TextView) findViewById(R.id.image_uri);
+        mImageView = (ImageView) findViewById(R.id.image);
+
 
         //Setup OnTouchListeners on all the imput fields, so we can determine if the user
         //has touched or modified them. This will let us know if there are unsaved changes
@@ -108,50 +140,68 @@ public class EditorActivity extends AppCompatActivity implements
         mItemPrice.setOnTouchListener(mTouchListener);
         mItemSupplier.setOnTouchListener(mTouchListener);
         mItemQuantity.setOnTouchListener(mTouchListener);
-        mCategorySpinner.setOnTouchListener(mTouchListener);
 
-        setupSpinner();
-    }
-
-    /**
-     * Setup the dropdown spinner that allows the user to select the gender of the pet.
-     */
-    private void setupSpinner() {
-        // Create adapter for spinner. The list options are from the String array it will use
-        // the spinner will use the default layout
-        ArrayAdapter categorySpinnderAdapter = ArrayAdapter.createFromResource(this,
-                R.array.array_category_options, android.R.layout.simple_spinner_item);
-
-        // Specify dropdown layout style - simple list view with 1 item per line
-        categorySpinnderAdapter.setDropDownViewResource(android.R.layout.simple_dropdown_item_1line);
-
-        // Apply the adapter to the spinner
-        mCategorySpinner.setAdapter(categorySpinnderAdapter);
-
-        // Set the integer mSelected to the constant values
-        mCategorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        Button addPictureButton = (Button) findViewById(R.id.upload_picture);
+        addPictureButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String selection = (String) parent.getItemAtPosition(position);
-                if (!TextUtils.isEmpty(selection)) {
-                    if (selection.equals(getString(R.string.category_beverage))) {
-                        mCategory = InventoryEntry.CATEGORY_BEVERAGE; // Beverage
-                    } else if (selection.equals(getString(R.string.category_chips))) {
-                        mCategory = InventoryEntry.CATEGORY_CHIPS; // Chips
-                    } else if (selection.equals(getString(R.string.category_candy))) {
-                        mCategory = InventoryEntry.CATEGORY_CANDY; // Candy
-                    } else {
-                        mCategory = InventoryEntry.CATEGORY_UNKNOWN; // Unknown
-                    }
-                }
-            }
-
-            // Because AdapterView is an abstract class, onNothingSelected must be defined
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                mCategory = InventoryEntry.CATEGORY_UNKNOWN; // Unknown
+            public void onClick(View view) {
+                Intent intent = new Intent(Intent.ACTION_PICK,
+                        android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                startActivityForResult(intent, PICK_IMAGE_REQUEST);
             }
         });
+    }
+
+    public void openImageSelector(View view) {
+        Intent intent;
+
+        if (Build.VERSION.SDK_INT < 19) {
+            intent = new Intent(Intent.ACTION_GET_CONTENT);
+        } else {
+            intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+        }
+
+        intent.setType("image/*");
+        startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_REQUEST);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent resultData) {
+
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK) {
+            if (resultData != null) {
+                mCurrentItemUri = resultData.getData();
+                Log.i(LOG_TAG, "Uri: " + mCurrentItemUri.toString());
+
+                mTextView.setText(mCurrentItemUri.toString());
+                mImageView.setImageBitmap(getBitmapFromUri(mCurrentItemUri));
+            }
+        }
+    }
+
+    public Bitmap getBitmapFromUri(Uri uri) {
+        ParcelFileDescriptor parcelFileDescriptor = null;
+        try {
+            parcelFileDescriptor =
+                    getContentResolver().openFileDescriptor(uri, "r");
+            FileDescriptor fileDescriptor = parcelFileDescriptor.getFileDescriptor();
+            Bitmap image = BitmapFactory.decodeFileDescriptor(fileDescriptor);
+            parcelFileDescriptor.close();
+            return image;
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "Failed to load image.", e);
+            return null;
+        } finally {
+            try {
+                if (parcelFileDescriptor != null) {
+                    parcelFileDescriptor.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                Log.e(LOG_TAG, "Error closing ParcelFile Descriptor");
+            }
+        }
     }
 
     /**
@@ -165,8 +215,9 @@ public class EditorActivity extends AppCompatActivity implements
         String itemQuantityString = mItemQuantity.getText().toString().trim();
         if (mCurrentItemUri == null &&
                 TextUtils.isEmpty(itemNameString) && TextUtils.isEmpty(itemPriceString) &&
-                TextUtils.isEmpty(itemSupplierString) && TextUtils.isEmpty(itemQuantityString)
-                && mCategory == InventoryEntry.CATEGORY_UNKNOWN) {return;}
+                TextUtils.isEmpty(itemSupplierString) && TextUtils.isEmpty(itemQuantityString)) {
+            return;
+        }
 
 
         //Create a Content Values object where column names are keys,
@@ -176,7 +227,7 @@ public class EditorActivity extends AppCompatActivity implements
         values.put(InventoryEntry.COLUMN_ITEM_PRICE, itemPriceString);
         values.put(InventoryEntry.COLUMN_ITEM_SUPPLIER, itemSupplierString);
         values.put(InventoryEntry.COLUMN_ITEM_QUANTITY, itemQuantityString);
-        values.put(InventoryEntry.COLUMN_ITEM_CATEGORY, mCategory);
+        values.put(InventoryEntry.COLUMN_ITEM_CATEGORY, mCurrentItemUri.toString());
         // If the price and quantity is not provided by the user, don't try to parse the string into an
         // integer value. Use 0 by default.
         int price = 0;
@@ -248,6 +299,10 @@ public class EditorActivity extends AppCompatActivity implements
                 //exit activity
                 finish();
                 return true;
+            case R.id.action_delete:
+                //Pop up cofirmation dialog for deletion
+                showDeleteConfirmationDialog();
+                return true;
             // Respond to a click on the "Up" arrow button in the app bar
             case android.R.id.home:
                 // If the pet hasn't changed, continue with navigating up to parent activity
@@ -300,13 +355,13 @@ public class EditorActivity extends AppCompatActivity implements
     }
 
 
-
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         //Since the editor shows all the pet attributes, define a projection that contains
         //all columns from the pet table
         String[] projection = {
                 InventoryEntry._ID,
+                InventoryEntry.COLUMN_ITEM_CATEGORY,
                 InventoryEntry.COLUMN_ITEM_NAME,
                 InventoryEntry.COLUMN_ITEM_PRICE,
                 InventoryEntry.COLUMN_ITEM_SUPPLIER,
@@ -325,7 +380,7 @@ public class EditorActivity extends AppCompatActivity implements
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
         //Bail early if the cursor is null or there is less than 1 row in the cursor
-        if (cursor == null || cursor.getCount() < 1){
+        if (cursor == null || cursor.getCount() < 1) {
             return;
         }
 
@@ -348,31 +403,13 @@ public class EditorActivity extends AppCompatActivity implements
 
 
             // Update the views on the screen with the values from the database
+            mImageView.setImageBitmap(getBitmapFromUri(mCurrentItemUri));
             mItemNameEditText.setText(name);
             mItemPrice.setText(price);
             mItemSupplier.setText(supplier);
             mItemQuantity.setText(Integer.toString(quantity));
 
-            // Gender is a dropdown spinner, so map the constant value from the database
-            // into one of the dropdown options (0 is Unknown, 1 is Male, 2 is Female).
-            // Then call setSelection() so that option is displayed on screen as the current selection.
-            switch (category) {
-                case InventoryEntry.CATEGORY_BEVERAGE:
-                    mCategorySpinner.setSelection(1);
-                    break;
-                case InventoryEntry.CATEGORY_CHIPS:
-                    mCategorySpinner.setSelection(2);
-                    break;
-                case InventoryEntry.CATEGORY_CANDY:
-                    mCategorySpinner.setSelection(3);
-                    break;
-                default:
-                    mCategorySpinner.setSelection(0);
-                    break;
-            }
         }
-
-
 
 
     }
@@ -384,7 +421,6 @@ public class EditorActivity extends AppCompatActivity implements
         mItemPrice.setText("");
         mItemSupplier.setText("");
         mItemQuantity.setText("");
-        mCategorySpinner.setSelection(0);
 
     }
 
@@ -409,6 +445,97 @@ public class EditorActivity extends AppCompatActivity implements
         AlertDialog alertDialog = builder.create();
         alertDialog.show();
     }
+
+    /**
+     * Prompt the user to confirm that they want to delete this pet.
+     */
+    private void showDeleteConfirmationDialog() {
+        // Create an AlertDialog.Builder and set the message, and click listeners
+        // for the postive and negative buttons on the dialog.
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(R.string.delete_dialog_msg);
+        builder.setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // User clicked the "Delete" button, so delete the pet.
+                deleteItem();
+            }
+        });
+        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // User clicked the "Cancel" button, so dismiss the dialog
+                // and continue editing the movie.
+                if (dialog != null) {
+                    dialog.dismiss();
+                }
+            }
+        });
+
+        // Create and show the AlertDialog
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+    }
+
+    /**
+     * Perform the deletion of the pet in the database.
+     */
+    private void deleteItem() {
+        // Only perform the delete if this is an existing Movie.
+        if (mCurrentItemUri != null) {
+            // Call the ContentResolver to delete the movie at the given content URI.
+            // Pass in null for the selection and selection args because the mCurrentMovieUri
+            // content URI already identifies the pet that we want.
+            int rowsDeleted = getContentResolver().delete(mCurrentItemUri, null, null);
+
+            // Show a toast message depending on whether or not the delete was successful.
+            if (rowsDeleted == 0) {
+                // If no rows were deleted, then there was an error with the delete.
+                Toast.makeText(this, getString(R.string.editor_delete_item_failed),
+                        Toast.LENGTH_SHORT).show();
+            } else {
+                // Otherwise, the delete was successful and we can display a toast.
+                Toast.makeText(this, getString(R.string.editor_delete_item_successful),
+                        Toast.LENGTH_SHORT).show();
+            }
+        }
+        // Close the activity
+        finish();
+    }
+
+//    /**
+//     * This method is called when the order button is clicked.
+//     */
+//    public void submitOrder(View view) {
+//        EditText nameField = (EditText) findViewById(R.id.edit_item_name);
+//        String name = nameField.getText().toString();
+//
+//
+//        EditText supField = (EditText) findViewById(R.id.edit_item_supplier);
+//        String supplierField = supField.getText().toString();
+//
+//        EditText qtyField = (EditText) findViewById(R.id.edit_item_quantity);
+//        String quantityField = qtyField.getText().toString();
+//
+//
+//        String priceMessage = createOrderSummary(name, supplierField, quantityField);
+//
+//        Intent intent = new Intent(Intent.ACTION_SENDTO);
+//        intent.setData(Uri.parse("mailto:")); // only email apps should handle this
+//        intent.putExtra(Intent.EXTRA_SUBJECT, "Movie order for " + name);
+//        intent.putExtra(Intent.EXTRA_TEXT, priceMessage);
+//        if (intent.resolveActivity(getPackageManager()) != null) {
+//            startActivity(intent);
+//        }
+//    }
+//
+//    private String createOrderSummary(String name, String supplier, String quantity) {
+//        String emailMessage = "Hello " + supplier + ","
+//                + "\n\nIt looks like we are running low on " + name
+//                + "; our current quantity is " + quantity
+//                + " and would like to reorder more."
+//                + "\nRegards,"
+//                + "\nConvenience Store Co.";
+//        return emailMessage;
+//    }
 
 
 }

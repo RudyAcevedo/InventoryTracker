@@ -2,25 +2,34 @@ package com.example.android.inventorytracker;
 
 import android.app.LoaderManager;
 import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.ParcelFileDescriptor;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.TextView;
 
-import com.example.android.inventorytracker.data.InventoryContract;
 import com.example.android.inventorytracker.data.InventoryContract.InventoryEntry;
+
+import java.io.FileDescriptor;
+import java.io.IOException;
+
+import static com.example.android.inventorytracker.data.InventoryProvider.LOG_TAG;
 
 public class CatalogActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor>{
 
-    int quantity = 0;
 
     private  static final int INVENTORY_LOADER = 0;
 
@@ -63,7 +72,7 @@ public class CatalogActivity extends AppCompatActivity implements
 
                 //form the content URI that represents the specific item that was clicked on,
                 //by appending the "id"
-                Uri currentItemUri = ContentUris.withAppendedId(InventoryContract.InventoryEntry.CONTENT_URI, id);
+                Uri currentItemUri = ContentUris.withAppendedId(InventoryEntry.CONTENT_URI, id);
 
                 //Set the URI on the data field of the Intent
                 intent.setData(currentItemUri);
@@ -79,46 +88,55 @@ public class CatalogActivity extends AppCompatActivity implements
 
     }
 
-    public void reorderHandler(View view){
 
-        sendEmail();
 
-    }
-    protected void sendEmail(){
-        //Get supplier name
-        TextView itemSupplier = (TextView) findViewById(R.id.item_supplier);
-        CharSequence supplierCharSequence = itemSupplier.getText();
-        String supplier = supplierCharSequence.toString();
+    /**
+     * Helper method to insert hardcoded item data into the database. For debugging purposes only.
+     */
+    private void insterItem() {
+        // Create a ContentValues object where column names are the keys,
+        ContentValues values = new ContentValues();
+        values.put(InventoryEntry.COLUMN_ITEM_CATEGORY, 1);
+        values.put(InventoryEntry.COLUMN_ITEM_NAME, "Monster Energy");
+        values.put(InventoryEntry.COLUMN_ITEM_PRICE, 3);
+        values.put(InventoryEntry.COLUMN_ITEM_SUPPLIER, "Coca-Cola");
+        values.put(InventoryEntry.COLUMN_ITEM_QUANTITY, 24);
 
-        //Get item name
-        TextView itemName = (TextView) findViewById(R.id.item_name);
-        CharSequence nameCharSequence = itemName.getText();
-        String item = nameCharSequence.toString();
-
-        //Display the request to the supplier
-        String message = createSupplierRequest(supplier, item);
-
-        //Use intent to launch email app. send the supplier request in the email body
-        Intent intent = new Intent(Intent.ACTION_SENDTO);
-        intent.setData(Uri.parse("mailto:"));
-        intent.putExtra(Intent.EXTRA_SUBJECT,
-                getString(R.string.supplier_request_subject));
-        intent.putExtra(Intent.EXTRA_TEXT, message);
-        startActivity(intent);
-
-    }
-
-    private String createSupplierRequest(String supplier, String item){
-        String emailMessage = "Hello " + supplier + ","
-                + "\n\nIt looks like we are running low on " + item
-                + " and would like to reorder more."
-                + "\nRegards,"
-                +"\nConvenience Store Co.";
-        return emailMessage;
+        // Insert a new row for Toto into the provider using the ContentResolver.
+        // Use the {@link PetEntry#CONTENT_URI} to indicate that we want to insert
+        // into the pets database table.
+        // Receive the new content URI that will allow us to access Toto's data in the future.
+        Uri newUri = getContentResolver().insert(InventoryEntry.CONTENT_URI, values);
     }
 
 
+    private void deleteAllItems() {
+        int rowsDeleted = getContentResolver().delete(InventoryEntry.CONTENT_URI, null, null);
+        Log.v("CatalogActivity", rowsDeleted + " rows deleted from Movie database");
+    }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu){
+        //Inflate the menu options . This adds menu items to the app bar.
+        getMenuInflater().inflate(R.menu.menu_catalog, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // User clicked on a menu option in the app bar overflow menu
+        switch (item.getItemId()) {
+            // Respond to a click on the "Insert dummy data" menu option
+            case R.id.action_insert_dummy_data:
+                insterItem();
+                return true;
+            // Respond to a click on the "Delete all entries" menu option
+            case R.id.action_delete_all_entries:
+                deleteAllItems();
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
 
 
 
@@ -127,6 +145,7 @@ public class CatalogActivity extends AppCompatActivity implements
         //Define a projection that specifies the columns from teh table we care about
         String[] projection = {
                 InventoryEntry._ID,
+                InventoryEntry.COLUMN_ITEM_CATEGORY,
                 InventoryEntry.COLUMN_ITEM_NAME,
                 InventoryEntry.COLUMN_ITEM_PRICE,
                 InventoryEntry.COLUMN_ITEM_SUPPLIER,
@@ -151,6 +170,30 @@ public class CatalogActivity extends AppCompatActivity implements
     public void onLoaderReset(Loader<Cursor> loader) {
         mCursorAdapter.swapCursor(null);
 
+    }
+
+    public Bitmap getBitmapFromUri(Uri uri) {
+        ParcelFileDescriptor parcelFileDescriptor = null;
+        try {
+            parcelFileDescriptor =
+                    getContentResolver().openFileDescriptor(uri, "r");
+            FileDescriptor fileDescriptor = parcelFileDescriptor.getFileDescriptor();
+            Bitmap image = BitmapFactory.decodeFileDescriptor(fileDescriptor);
+            parcelFileDescriptor.close();
+            return image;
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "Failed to load image.", e);
+            return null;
+        } finally {
+            try {
+                if (parcelFileDescriptor != null) {
+                    parcelFileDescriptor.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                Log.e(LOG_TAG, "Error closing ParcelFile Descriptor");
+            }
+        }
     }
 
 

@@ -175,7 +175,7 @@ public class InventoryProvider extends ContentProvider {
 
         // Check that the category is valid
         Integer category = values.getAsInteger(InventoryEntry.COLUMN_ITEM_CATEGORY);
-        if (category == null || !InventoryEntry.isValidCategory(category)) {
+        if (category == null) {
             throw new IllegalArgumentException("Item requires valid category");
         }
 
@@ -256,7 +256,7 @@ public class InventoryProvider extends ContentProvider {
         // check that the category value is valid.
         if (values.containsKey(InventoryEntry.COLUMN_ITEM_CATEGORY)) {
             Integer category = values.getAsInteger(InventoryEntry.COLUMN_ITEM_CATEGORY);
-            if (category == null || !InventoryEntry.isValidCategory(category)) {
+            if (category == null) {
                 throw new IllegalArgumentException("Item requires valid category");
             }
         }

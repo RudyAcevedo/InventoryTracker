@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CursorAdapter;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -22,11 +23,6 @@ import com.example.android.inventorytracker.data.InventoryContract.InventoryEntr
  */
 
 public class InventoryCursorAdapter extends CursorAdapter {
-
-    private static final String LOG_TAG = InventoryCursorAdapter.class.getSimpleName();
-
-
-
 
     //constructs a new InventoryCursorAdapter
     public InventoryCursorAdapter(Context context, Cursor c) {
@@ -53,21 +49,26 @@ public class InventoryCursorAdapter extends CursorAdapter {
         TextView quantityTextView = (TextView) view.findViewById(R.id.item_quantity);
 
 
-
         //Find the columns of item attributes that we are interest in
+        int categoryImgColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_ITEM_CATEGORY);
         int itemNameColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_ITEM_NAME);
         int priceColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_ITEM_PRICE);
         int supplierColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_ITEM_SUPPLIER);
         final int quantityColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_ITEM_QUANTITY);
+        int itemIdColumnIndex = cursor.getColumnIndex(InventoryEntry._ID);
 
         //Read the item attributes from the Cursor for the current item
-        String itemName = cursor.getString(itemNameColumnIndex);
+        String categoryColumn = cursor.getString(cursor.getColumnIndexOrThrow(InventoryEntry.COLUMN_ITEM_CATEGORY));
+        Uri categoryUri = Uri.parse(categoryColumn);
+        final String itemName = cursor.getString(itemNameColumnIndex);
         String itemPrice = cursor.getString(priceColumnIndex);
-        String itemSupplier = cursor.getString(supplierColumnIndex);
+        final String itemSupplier = cursor.getString(supplierColumnIndex);
         final String itemQuantity = cursor.getString(quantityColumnIndex);
+        final long itemId = cursor.getLong(itemIdColumnIndex);
 
 
-        //Update the TextViews with the attributes for the current pet
+        //Update the TextViews with the attributes for the current item
+        categoryImageView.setImageBitmap(new EditorActivity().getBitmapFromUri(categoryUri));
         itemNameTextView.setText(itemName);
         priceTextView.setText(itemPrice);
         supplierTextView.setText(itemSupplier);
@@ -77,17 +78,17 @@ public class InventoryCursorAdapter extends CursorAdapter {
 
         //declare button and initialize it
         Button saleButton = (Button) view.findViewById(R.id.button_sale);
-        saleButton.setOnClickListener(new View.OnClickListener(){
+        saleButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view){
+            public void onClick(View view) {
                 ContentResolver resolver = view.getContext().getContentResolver();
                 ContentValues values = new ContentValues();
-                if (currentQuantity > 0){
+                if (currentQuantity > 0) {
                     int quantityValue = currentQuantity;
 
                     values.put(InventoryEntry.COLUMN_ITEM_QUANTITY, --quantityValue);
 
-                    Uri uri = ContentUris.withAppendedId(InventoryEntry.CONTENT_URI, Long.parseLong(InventoryEntry._ID));
+                    Uri uri = ContentUris.withAppendedId(InventoryEntry.CONTENT_URI, itemId);
                     resolver.update(
                             uri,
                             values,
@@ -98,42 +99,113 @@ public class InventoryCursorAdapter extends CursorAdapter {
                 }
             }
         });
-        Button reorderButton = (Button) view.findViewById(R.id.button_reorder);
-        reorderButton.setOnClickListener(new View.OnClickListener(){
+
+        Button decreaseButton = (Button) view.findViewById(R.id.button_decrease);
+        decreaseButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view){
-                //Get supplier name
-                TextView itemSupplier = (TextView) view.findViewById(R.id.item_supplier);
-                CharSequence supplierCharSequence = itemSupplier.getText();
-                String supplier = supplierCharSequence.toString();
+            public void onClick(View view) {
+                ContentResolver resolver = view.getContext().getContentResolver();
+                ContentValues values = new ContentValues();
+                if (currentQuantity > 0) {
+                    int quantityValue = currentQuantity;
 
-                //Get item name
-                TextView itemName = (TextView) view.findViewById(R.id.item_name);
-                CharSequence nameCharSequence = itemName.getText();
-                String item = nameCharSequence.toString();
+                    values.put(InventoryEntry.COLUMN_ITEM_QUANTITY, --quantityValue);
 
-                //Display the request to the supplier
-                String message = createSupplierRequest(supplier, item);
+                    Uri uri = ContentUris.withAppendedId(InventoryEntry.CONTENT_URI, itemId);
+                    resolver.update(
+                            uri,
+                            values,
+                            null,
+                            null);
 
-                //Use intent to launch email app. send the supplier request in the email body
-                Intent intent = new Intent(Intent.ACTION_SENDTO);
-                intent.setData(Uri.parse("mailto:"));
-                intent.putExtra(Intent.EXTRA_SUBJECT,
-                        R.string.supplier_request_subject);
-                intent.putExtra(Intent.EXTRA_TEXT, message);
-                //startActivity(intent);
-            }
 
-            private String createSupplierRequest(String supplier, String item){
-                String emailMessage = "Hello " + supplier + ","
-                        + "\n\nIt looks like we are running low on " + item
-                        + " and would like to reorder more."
-                        + "\nRegards,"
-                        +"\nConvenience Store Co.";
-                return emailMessage;
+                }
             }
         });
-    }
+
+        Button increaseButton = (Button) view.findViewById(R.id.button_increase);
+        increaseButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ContentResolver resolver = view.getContext().getContentResolver();
+                ContentValues values = new ContentValues();
+                if (currentQuantity > 0) {
+                    int quantityValue = currentQuantity;
+
+                    values.put(InventoryEntry.COLUMN_ITEM_QUANTITY, ++quantityValue);
+
+                    Uri uri = ContentUris.withAppendedId(InventoryEntry.CONTENT_URI, itemId);
+                    resolver.update(
+                            uri,
+                            values,
+                            null,
+                            null);
 
 
+                }
+            }
+        });
+
+        Button reorderButton = (Button) view.findViewById(R.id.button_reorder);
+        reorderButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                EditText nameField = (EditText) view.findViewById(R.id.edit_item_name);
+                String name = nameField.getText().toString();
+
+
+                EditText supField = (EditText) view.findViewById(R.id.edit_item_supplier);
+                String supplierField = supField.getText().toString();
+
+                EditText qtyField = (EditText) view.findViewById(R.id.edit_item_quantity);
+                String quantityField = qtyField.getText().toString();
+
+
+                String priceMessage = createOrderSummary(name, supplierField, quantityField);
+
+                Intent intent = new Intent(Intent.ACTION_SENDTO);
+                intent.setData(Uri.parse("mailto:")); // only email apps should handle this
+                intent.putExtra(Intent.EXTRA_SUBJECT, "Movie order for " + name);
+                intent.putExtra(Intent.EXTRA_TEXT, priceMessage);
+
+            }
+
+
+//        /**
+//         * This method is called when the order button is clicked.
+//         */
+//    public void submitOrder(View view) {
+//        EditText nameField = (EditText) view.findViewById(R.id.edit_item_name);
+//        String name = nameField.getText().toString();
+//
+//
+//        EditText supField = (EditText) view.findViewById(R.id.edit_item_supplier);
+//        String supplierField = supField.getText().toString();
+//
+//        EditText qtyField = (EditText) view.findViewById(R.id.edit_item_quantity);
+//        String quantityField = qtyField.getText().toString();
+//
+//
+//        String priceMessage = createOrderSummary(name, supplierField, quantityField);
+//
+//        Intent intent = new Intent(Intent.ACTION_SENDTO);
+//        intent.setData(Uri.parse("mailto:")); // only email apps should handle this
+//        intent.putExtra(Intent.EXTRA_SUBJECT, "Movie order for " + name);
+//        intent.putExtra(Intent.EXTRA_TEXT, priceMessage);
+//
+//    }
+
+            private String createOrderSummary(String name, String supplier, String quantity) {
+                String emailMessage = "Hello " + supplier + ","
+                        + "\n\nIt looks like we are running low on " + name
+                        + "; our current quantity is " + quantity
+                        + " and would like to reorder more."
+                        + "\nRegards,"
+                        + "\nConvenience Store Co.";
+                return emailMessage;
+            }
+
+
+        ;})
+    ;}
 }

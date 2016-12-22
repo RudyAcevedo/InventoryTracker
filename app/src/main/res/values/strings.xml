@@ -42,4 +42,25 @@
     <string name="supplier_request_subject">New Shipment Request</string>
 
     <string name="item_sold">Item successfully sold</string>
+
+    <string name="action_delete_all_entries">Delete All Items</string>
+
+    <string name="action_insert_dummy_data">Insert Dummy Data</string>
+
+    <string name="editor_activity_title_new_item">Add an Item</string>
+
+    <string name="editor_activity_title_edit_item">Edit an Item</string>
+
+    <string name="select_item_catory">Select Item Category</string>
+
+    <string name="editor_delete_item_failed">Error with delete an item</string>
+
+    <string name="editor_delete_item_successful">Item deleted</string>
+
+    <string name="delete_dialog_msg">Delete this Item?</string>
+
+    <string name="delete">Delete</string>
+
+    <string name="cancel">Cancel</string>
+
 </resources>
