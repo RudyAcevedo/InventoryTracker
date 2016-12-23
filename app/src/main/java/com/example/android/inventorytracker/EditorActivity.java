@@ -79,7 +79,6 @@ public class EditorActivity extends AppCompatActivity implements
 
     private ImageView mImageView;
     private TextView mTextView;
-
     /**
      * Boolean flag that keeps track of whether the pet has been edited (true) or not (false)
      */
@@ -150,7 +149,77 @@ public class EditorActivity extends AppCompatActivity implements
                 startActivityForResult(intent, PICK_IMAGE_REQUEST);
             }
         });
+
+
+        Button decreaseButton = (Button) findViewById(R.id.button_decrease);
+        decreaseButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //Get Current quantity
+                TextView quantity = (TextView) findViewById(R.id.item_quantity);
+                int currentQuantity = Integer.parseInt(quantity.getText().toString());
+
+                if (currentQuantity > 0) {
+                    currentQuantity -= 1;
+
+                    quantity.setText(Integer.toString(currentQuantity));
+                }
+            }
+        });
+
+        Button increaseButton = (Button) findViewById(R.id.button_increase);
+        increaseButton.setOnClickListener(new View.OnClickListener() {
+              @Override
+              public void onClick(View view) {
+                  //Get Current quantity
+                  TextView quantity = (TextView) findViewById(R.id.item_quantity);
+                  int currentQuantity = Integer.parseInt(quantity.getText().toString());
+
+                  if (currentQuantity < 100) {
+                      currentQuantity += 1;
+
+                      quantity.setText(Integer.toString(currentQuantity));
+                  }
+              }
+          }
+        );
     }
+
+    /**
+     * This method is called when the order button is clicked.
+     */
+
+    public void submitOrder(View view) {
+        EditText nameField = (EditText) view.findViewById(R.id.edit_item_name);
+        String name = nameField.getText().toString();
+
+
+        EditText supField = (EditText) view.findViewById(R.id.edit_item_supplier);
+        String supplierField = supField.getText().toString();
+
+        EditText qtyField = (EditText) view.findViewById(R.id.edit_item_quantity);
+        String quantityField = qtyField.getText().toString();
+
+
+        String priceMessage = createOrderSummary(name, supplierField, quantityField);
+
+        Intent intent = new Intent(Intent.ACTION_SENDTO);
+        intent.setData(Uri.parse("mailto:")); // only email apps should handle this
+        intent.putExtra(Intent.EXTRA_SUBJECT, "Movie order for " + name);
+        intent.putExtra(Intent.EXTRA_TEXT, priceMessage);
+
+    }
+
+    private String createOrderSummary(String name, String supplier, String quantity) {
+        String emailMessage = "Hello " + supplier + ","
+                + "\n\nIt looks like we are running low on " + name
+                + "; our current quantity is " + quantity
+                + " and would like to reorder more."
+                + "\nRegards,"
+                + "\nConvenience Store Co.";
+        return emailMessage;
+    }
+
 
     public void openImageSelector(View view) {
         Intent intent;
@@ -500,6 +569,7 @@ public class EditorActivity extends AppCompatActivity implements
         // Close the activity
         finish();
     }
+
 
 //    /**
 //     * This method is called when the order button is clicked.
