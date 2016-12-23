@@ -156,7 +156,7 @@ public class EditorActivity extends AppCompatActivity implements
             @Override
             public void onClick(View view) {
                 //Get Current quantity
-                TextView quantity = (TextView) findViewById(R.id.item_quantity);
+                TextView quantity = (TextView) findViewById(R.id.edit_item_quantity);
                 int currentQuantity = Integer.parseInt(quantity.getText().toString());
 
                 if (currentQuantity > 0) {
@@ -172,7 +172,7 @@ public class EditorActivity extends AppCompatActivity implements
               @Override
               public void onClick(View view) {
                   //Get Current quantity
-                  TextView quantity = (TextView) findViewById(R.id.item_quantity);
+                  TextView quantity = (TextView) findViewById(R.id.edit_item_quantity);
                   int currentQuantity = Integer.parseInt(quantity.getText().toString());
 
                   if (currentQuantity < 100) {
