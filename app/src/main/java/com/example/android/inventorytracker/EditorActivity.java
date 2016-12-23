@@ -190,14 +190,14 @@ public class EditorActivity extends AppCompatActivity implements
      */
 
     public void submitOrder(View view) {
-        EditText nameField = (EditText) view.findViewById(R.id.edit_item_name);
+        EditText nameField = (EditText) findViewById(R.id.edit_item_name);
         String name = nameField.getText().toString();
 
 
-        EditText supField = (EditText) view.findViewById(R.id.edit_item_supplier);
+        EditText supField = (EditText) findViewById(R.id.edit_item_supplier);
         String supplierField = supField.getText().toString();
 
-        EditText qtyField = (EditText) view.findViewById(R.id.edit_item_quantity);
+        EditText qtyField = (EditText) findViewById(R.id.edit_item_quantity);
         String quantityField = qtyField.getText().toString();
 
 
@@ -205,8 +205,10 @@ public class EditorActivity extends AppCompatActivity implements
 
         Intent intent = new Intent(Intent.ACTION_SENDTO);
         intent.setData(Uri.parse("mailto:")); // only email apps should handle this
-        intent.putExtra(Intent.EXTRA_SUBJECT, "Movie order for " + name);
+        intent.putExtra(Intent.EXTRA_SUBJECT, "Order request for " + name);
         intent.putExtra(Intent.EXTRA_TEXT, priceMessage);
+
+        startActivity(Intent.createChooser(intent, "Send email..."));
 
     }
 
@@ -215,7 +217,7 @@ public class EditorActivity extends AppCompatActivity implements
                 + "\n\nIt looks like we are running low on " + name
                 + "; our current quantity is " + quantity
                 + " and would like to reorder more."
-                + "\nRegards,"
+                + "\n\nRegards,"
                 + "\nConvenience Store Co.";
         return emailMessage;
     }
