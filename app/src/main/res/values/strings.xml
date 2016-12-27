@@ -63,4 +63,6 @@
 
     <string name="cancel">Cancel</string>
 
+    <string name="needs_name">Needs Name.</string>
+
 </resources>

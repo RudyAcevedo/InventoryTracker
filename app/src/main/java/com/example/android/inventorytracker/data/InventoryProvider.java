@@ -7,7 +7,6 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
-import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.example.android.inventorytracker.data.InventoryContract.InventoryEntry;
@@ -111,12 +110,6 @@ public class InventoryProvider extends ContentProvider {
         return cursor;
     }
 
-    @Nullable
-    @Override
-    public String getType(Uri uri) {
-        return null;
-    }
-
 
     /**
      * Insert new data into the provider with the given ContentValues.
@@ -150,7 +143,7 @@ public class InventoryProvider extends ContentProvider {
             case INVENTORY_ID:
                 // Delete a single row given by the ID in the URI
                 selection = InventoryEntry._ID + "=?";
-                selectionArgs = new String[] { String.valueOf(ContentUris.parseId(uri)) };
+                selectionArgs = new String[]{String.valueOf(ContentUris.parseId(uri))};
                 rowsDeleted = database.delete(InventoryEntry.TABLE_NAME, selection, selectionArgs);
                 break;
             default:
@@ -174,7 +167,7 @@ public class InventoryProvider extends ContentProvider {
     private Uri insertInventory(Uri uri, ContentValues values) {
 
         // Check that the category is valid
-        Integer category = values.getAsInteger(InventoryEntry.COLUMN_ITEM_CATEGORY);
+        String category = values.getAsString(InventoryEntry.COLUMN_ITEM_CATEGORY);
         if (category == null) {
             throw new IllegalArgumentException("Item requires valid category");
         }
@@ -255,7 +248,7 @@ public class InventoryProvider extends ContentProvider {
         // If the COLUMN_INVENTORY_CATEGORY key is present,
         // check that the category value is valid.
         if (values.containsKey(InventoryEntry.COLUMN_ITEM_CATEGORY)) {
-            Integer category = values.getAsInteger(InventoryEntry.COLUMN_ITEM_CATEGORY);
+            String category = values.getAsString(InventoryEntry.COLUMN_ITEM_CATEGORY);
             if (category == null) {
                 throw new IllegalArgumentException("Item requires valid category");
             }
@@ -269,7 +262,6 @@ public class InventoryProvider extends ContentProvider {
                 throw new IllegalArgumentException("Item requires a name");
             }
         }
-
 
 
         // If the COLUMN_ITEM_PRICE key is present,
@@ -302,7 +294,6 @@ public class InventoryProvider extends ContentProvider {
         }
 
 
-
         // If there are no values to update, then don't try to update the database
         if (values.size() == 0) {
             return 0;
@@ -321,5 +312,18 @@ public class InventoryProvider extends ContentProvider {
 
         // Return the number of rows updated
         return rowsUpdated;
+    }
+
+    @Override
+    public String getType(Uri uri) {
+        final int match = sUriMatcher.match(uri);
+        switch (match) {
+            case INVENTORY:
+                return InventoryEntry.CONTENT_LIST_TYPE;
+            case INVENTORY_ID:
+                return InventoryEntry.CONTENT_ITEM_TYPE;
+            default:
+                throw new IllegalArgumentException("Unknown URI " + uri + " with match " + match);
+        }
     }
 }

@@ -6,6 +6,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +15,7 @@ import android.widget.CursorAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.android.inventorytracker.data.InventoryContract;
 import com.example.android.inventorytracker.data.InventoryContract.InventoryEntry;
 
 /**
@@ -56,8 +58,12 @@ public class InventoryCursorAdapter extends CursorAdapter {
         int itemIdColumnIndex = cursor.getColumnIndex(InventoryEntry._ID);
 
         //Read the item attributes from the Cursor for the current item
-        String categoryColumn = cursor.getString(cursor.getColumnIndexOrThrow(InventoryEntry.COLUMN_ITEM_CATEGORY));
-        Uri categoryUri = Uri.parse(categoryColumn);
+        String categoryString = cursor.getString(categoryImgColumnIndex);
+        //if there is no image, provide image blank
+        if (TextUtils.isEmpty(categoryString)) {
+            categoryString = InventoryContract.NO_IMAGE;
+        }
+        Uri categoryUri = Uri.parse(categoryString);
         final String itemName = cursor.getString(itemNameColumnIndex);
         String itemPrice = cursor.getString(priceColumnIndex);
         final String itemSupplier = cursor.getString(supplierColumnIndex);
@@ -66,7 +72,7 @@ public class InventoryCursorAdapter extends CursorAdapter {
 
 
         //Update the TextViews with the attributes for the current item
-        categoryImageView.setImageBitmap(new EditorActivity().getBitmapFromUri(categoryUri));
+        categoryImageView.setImageURI(categoryUri);
         itemNameTextView.setText(itemName);
         priceTextView.setText(itemPrice);
         supplierTextView.setText(itemSupplier);

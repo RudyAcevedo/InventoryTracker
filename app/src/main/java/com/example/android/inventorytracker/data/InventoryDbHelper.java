@@ -3,12 +3,14 @@ package com.example.android.inventorytracker.data;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
 import com.example.android.inventorytracker.data.InventoryContract.InventoryEntry;
+
 /**
  * Created by Rudster on 12/1/2016.
  */
 
-public class InventoryDbHelper extends SQLiteOpenHelper{
+public class InventoryDbHelper extends SQLiteOpenHelper {
 
     // database version
     public static final int DATABASE_VERSION = 1;
@@ -35,7 +37,7 @@ public class InventoryDbHelper extends SQLiteOpenHelper{
                         + InventoryEntry.COLUMN_ITEM_NAME + " TEXT NOT NULL,"
                         + InventoryEntry.COLUMN_ITEM_PRICE + " INTEGER NOT NULL,"
                         + InventoryEntry.COLUMN_ITEM_SUPPLIER + " TEXT NOT NULL,"
-                        + InventoryEntry.COLUMN_ITEM_QUANTITY + " INTEGER NOT NULL);";
+                        + InventoryEntry.COLUMN_ITEM_QUANTITY + " INTEGER NOT NULL DEFAULT 0);";
         db.execSQL(SQL_CREATE_TABLE);
 
     }

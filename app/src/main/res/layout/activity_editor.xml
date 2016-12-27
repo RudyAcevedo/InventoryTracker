@@ -24,16 +24,16 @@
             android:id="@+id/upload_picture"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/select_item_catory"
-            android:onClick="openImageSelector"/>
+            android:text="@string/select_item_catory"/>
 
-        <ImageView
-            android:id="@+id/image"
-            android:layout_width="100dp"
-            android:layout_height="match_parent" />
+            <ImageView
+                android:id="@+id/item_image"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:scaleType="centerInside"/>
 
 
-    </LinearLayout>
+        </LinearLayout>
 
 
         <!-- Item name Field-->
@@ -64,7 +64,30 @@
             android:inputType="number"
             style="@style/EditorFieldStyle" />
 
-        <Button
+
+
+        <RelativeLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:background="@drawable/ic_action_minus"
+                android:layout_marginLeft="8dp"
+                android:id="@+id/button_decrease"
+                android:layout_width="50dp"
+                android:layout_height="50dp" />
+
+            <Button
+                android:background="@drawable/ic_action_add"
+                android:layout_marginLeft="24dp"
+                android:id="@+id/button_increase"
+                android:layout_toEndOf="@+id/button_decrease"
+                android:layout_width="50dp"
+                android:layout_height="50dp" />
+
+            <Button
+                android:layout_below="@id/button_increase"
             android:id="@+id/button_reorder"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -73,26 +96,6 @@
             android:text="Reorder"
             android:onClick="submitOrder"
             />
-
-        <RelativeLayout
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <Button
-                android:layout_marginLeft="8dp"
-                android:id="@+id/button_decrease"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Decrease Qty"/>
-
-            <Button
-                android:layout_marginLeft="8dp"
-                android:id="@+id/button_increase"
-                android:layout_toRightOf="@+id/button_decrease"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Increse Qty"/>
         </RelativeLayout>
 
     </LinearLayout>

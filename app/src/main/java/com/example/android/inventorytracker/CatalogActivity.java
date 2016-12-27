@@ -28,10 +28,10 @@ import java.io.IOException;
 import static com.example.android.inventorytracker.data.InventoryProvider.LOG_TAG;
 
 public class CatalogActivity extends AppCompatActivity implements
-        LoaderManager.LoaderCallbacks<Cursor>{
+        LoaderManager.LoaderCallbacks<Cursor> {
 
 
-    private  static final int INVENTORY_LOADER = 0;
+    private static final int INVENTORY_LOADER = 0;
 
     InventoryCursorAdapter mCursorAdapter;
 
@@ -40,7 +40,6 @@ public class CatalogActivity extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_catalog);
-
 
 
         // Setup FAB to open EditorActivity
@@ -89,11 +88,10 @@ public class CatalogActivity extends AppCompatActivity implements
     }
 
 
-
     /**
      * Helper method to insert hardcoded item data into the database. For debugging purposes only.
      */
-    private void insterItem() {
+    private void instertItem() {
         // Create a ContentValues object where column names are the keys,
         ContentValues values = new ContentValues();
         values.put(InventoryEntry.COLUMN_ITEM_CATEGORY, 1);
@@ -116,7 +114,7 @@ public class CatalogActivity extends AppCompatActivity implements
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu){
+    public boolean onCreateOptionsMenu(Menu menu) {
         //Inflate the menu options . This adds menu items to the app bar.
         getMenuInflater().inflate(R.menu.menu_catalog, menu);
         return true;
@@ -128,7 +126,7 @@ public class CatalogActivity extends AppCompatActivity implements
         switch (item.getItemId()) {
             // Respond to a click on the "Insert dummy data" menu option
             case R.id.action_insert_dummy_data:
-                insterItem();
+                instertItem();
                 return true;
             // Respond to a click on the "Delete all entries" menu option
             case R.id.action_delete_all_entries:
@@ -137,7 +135,6 @@ public class CatalogActivity extends AppCompatActivity implements
         }
         return super.onOptionsItemSelected(item);
     }
-
 
 
     @Override
